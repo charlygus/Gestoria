@@ -122,15 +122,19 @@
                 method: "POST",
                 body: JSON.stringify(datos)
             })
-            .then(r => r.json())
-            .then(data => {
+           .then(data => {
+                // --- BLOQUE NUEVO PARA CAZAR ERRORES ---
+                if (data.estado === "error") {
+                    alert("⚠️ ERROR DETECTADO: " + data.mensaje);
+                    statusDiv.innerText = "Fallo: " + data.mensaje;
+                    return; 
+                }
+                // ---------------------------------------
+
                 if (datos.accion === "escanear") {
                     document.getElementById('textoOCR').value = data.textoDetectado;
-                    statusDiv.innerText = "Escaneo completado. Verifica los datos.";
-                    // Aquí podrías añadir expresiones regulares para buscar el DNI automáticamente dentro del texto
-                } else if (datos.accion === "generar") {
-                    statusDiv.innerHTML = 'Exito! <a href="' + data.url + '" target="_blank">Ver Contrato PDF</a>';
-                }
+                    statusDiv.innerText = "Escaneo completado.";
+                } else if ...
             })
             .catch(e => {
                 statusDiv.innerText = "Error: " + e;
