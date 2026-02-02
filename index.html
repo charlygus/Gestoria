@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner DNI - Apellidos Completos</title>
+    <title>Scanner DNI - Final</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f7f6; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50; font-size: 0.9em; }
         input, button, textarea { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 16px; }
@@ -21,7 +21,7 @@
 </head>
 <body>
 
-    <h2 style="text-align:center; color:#333;">Lector DNI (Fix Apellidos)</h2>
+    <h2 style="text-align:center; color:#333;">Lector DNI Final</h2>
 
     <div class="card">
         <label>📸 Escanear Documento</label>
@@ -38,7 +38,7 @@
         <div class="card">
             <label>👤 Datos Detectados</label>
             <input type="text" id="nombre" placeholder="Nombre...">
-            <input type="text" id="apellidos" placeholder="Apellidos (1º y 2º)...">
+            <input type="text" id="apellidos" placeholder="Apellidos...">
             <input type="text" id="dni" placeholder="DNI...">
 
             <details>
@@ -59,7 +59,7 @@
 
     <script>
         // ==========================================
-        // 👇 URL DEL SCRIPT DE GOOGLE 👇
+        // 👇 TU URL SIGUE SIENDO ESTA 👇
         // ==========================================
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbznr0RNGh9hLBz5QHE3PJqC1MhC2967dHO0NLIaAaEBxkqxbYcaqsQnBzvVJUhvg3FL/exec"; 
         
@@ -98,7 +98,7 @@
         function enviarAGoogle(datos) {
             const statusDiv = document.getElementById('status');
             statusDiv.style.display = 'block';
-            statusDiv.innerText = "⏳ Leyendo DNI...";
+            statusDiv.innerText = "⏳ Procesando datos...";
             statusDiv.style.background = "#fff3cd"; statusDiv.style.color = "#856404";
 
             fetch(URL_SCRIPT, {
@@ -110,7 +110,10 @@
 
                 if (datos.accion === "escanear") {
                     document.getElementById('textoOCR').value = data.textoDetectado;
+                    
+                    // EJECUTAR LÓGICA MEZCLADA (V4 + V5)
                     analizarPorEtiquetas(data.textoDetectado);
+                    
                     statusDiv.innerText = "✅ Datos extraídos.";
                     statusDiv.style.background = "#d4edda"; statusDiv.style.color = "#155724";
                 } else if (datos.accion === "generar") {
@@ -136,7 +139,7 @@
         }
 
         // ==========================================
-        // 🧠 CEREBRO V5: DOBLE APELLIDO
+        // 🧠 CEREBRO V6: LA MEZCLA PERFECTA
         // ==========================================
         function analizarPorEtiquetas(textoRaw) {
             const lineas = textoRaw.split('\n').map(l => l.trim().toUpperCase());
@@ -150,34 +153,33 @@
             for (let i = 0; i < lineas.length; i++) {
                 let linea = lineas[i];
 
-                // --- 1. APELLIDOS (Lógica mejorada de 2 líneas) ---
+                // 1. APELLIDOS (LÓGICA V5 - La que lee 2 líneas)
+                // ---------------------------------------------
                 if (linea.includes("APELLIDOS") || linea.includes("COGNOMS")) {
-                    // Caso A: Están en la misma línea (APELLIDOS GARCIA PEREZ)
                     let resto = linea.replace("APELLIDOS", "").replace("COGNOMS", "").replace("/", "").trim();
                     
                     if (resto.length > 2) {
-                        apellidos = resto;
-                    } 
-                    // Caso B: Están en la línea siguiente (Lo normal)
-                    else if (i + 1 < lineas.length) {
-                        let lineaApellidos1 = lineas[i+1];
-                        apellidos = lineaApellidos1;
+                        apellidos = resto; // Estaba en la misma línea
+                    } else if (i + 1 < lineas.length) {
+                        apellidos = lineas[i+1]; // Cogemos la línea de abajo
 
-                        // TRUCO: Mirar también la SIGUIENTE línea (i+2)
-                        // Si la línea i+2 NO es "NOMBRE", probablemente sea el segundo apellido suelto
+                        // Y miramos si hay una tercera línea que sea el segundo apellido
                         if (i + 2 < lineas.length) {
-                            let lineaPosibleApellido2 = lineas[i+2];
-                            if (!lineaPosibleApellido2.includes("NOMBRE") && !lineaPosibleApellido2.includes("NOM") && lineaPosibleApellido2.length > 2) {
-                                // Sumamos el segundo apellido al primero
-                                apellidos = apellidos + " " + lineaPosibleApellido2;
+                            let lineaExtra = lineas[i+2];
+                            // Solo la sumamos si NO es la palabra "NOMBRE"
+                            if (!lineaExtra.includes("NOMBRE") && !lineaExtra.includes("NOM") && lineaExtra.length > 2) {
+                                apellidos = apellidos + " " + lineaExtra;
                             }
                         }
                     }
                 }
 
-                // --- 2. NOMBRE ---
+                // 2. NOMBRE (LÓGICA V4 - La clásica que funcionaba)
+                // ---------------------------------------------
+                // Volvemos a la lógica simple: si pone NOMBRE, coge lo de al lado o lo de abajo.
                 if ((linea.includes("NOMBRE") || linea.includes("NOM")) && !linea.includes("PADRES")) {
                     let resto = linea.replace("NOMBRE", "").replace("NOM", "").replace("/", "").trim();
+                    
                     if (resto.length > 2) {
                         nombre = resto; 
                     } else if (i + 1 < lineas.length) {
@@ -185,24 +187,33 @@
                     }
                 }
 
-                // --- 3. DNI ---
+                // 3. DNI (LÓGICA V4 - La clásica que funcionaba)
+                // ---------------------------------------------
                 if (linea.includes("DNI") || linea.includes("NUM")) {
                     let match = linea.match(/(\d{8})([-\s]?)([A-Z])/);
-                    if (match) dni = match[1] + match[3];
-                    else if (i + 1 < lineas.length) {
+                    
+                    if (match) {
+                        dni = match[1] + match[3];
+                    } else if (i + 1 < lineas.length) {
                         let matchSig = lineas[i + 1].match(/(\d{8})([-\s]?)([A-Z])/);
-                        if (matchSig) dni = matchSig[1] + matchSig[3];
+                        if (matchSig) {
+                            dni = matchSig[1] + matchSig[3];
+                        }
                     }
                 }
             }
 
-            // Fallback DNI (Búsqueda general si falla la etiqueta)
+            // FALLBACK DNI (Red de seguridad de la V4)
+            // Si no encontró la palabra "DNI", busca cualquier patrón válido en todo el texto
             if (!dni) {
                 let textoLimpio = textoRaw.toUpperCase().replace(/O/g, '0').replace(/I/g, '1');
                 let matchGeneral = textoLimpio.match(/(\d{8})([-\s]?)([A-Z])/);
-                if (matchGeneral) dni = matchGeneral[1] + matchGeneral[3];
+                if (matchGeneral) {
+                    dni = matchGeneral[1] + matchGeneral[3];
+                }
             }
 
+            // Asignar valores
             if(nombre) document.getElementById('nombre').value = limpiar(nombre);
             if(apellidos) document.getElementById('apellidos').value = limpiar(apellidos);
             if(dni) document.getElementById('dni').value = dni;
