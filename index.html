@@ -3,32 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner DNI - Validación Matemática</title>
+    <title>Scanner DNI - Lógica Estricta</title>
     <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
         
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.9em; }
-        input, button, textarea { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50; font-size: 0.9em; }
+        input, button, textarea { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 16px; }
         
-        /* Botones */
-        button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background-color: #0056b3; }
+        button { background-color: #0d6efd; color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #0b5ed7; }
         .btn-cancel { background-color: #dc3545; }
-        .btn-generar { background-color: #28a745; margin-top: 10px; padding: 15px; font-size: 18px; }
+        .btn-generar { background-color: #198754; font-size: 1.1em; padding: 15px; margin-top: 10px; }
 
-        /* Cámara */
-        #camera-container { display: none; background: black; padding: 10px; border-radius: 8px; text-align: center; }
-        video { width: 100%; max-height: 400px; border-radius: 4px; }
+        #camera-container { display: none; background: black; padding: 5px; border-radius: 8px; text-align: center; }
+        video { width: 100%; max-height: 400px; }
         
-        /* Debug */
-        #status { padding: 15px; border-radius: 6px; display: none; margin-top: 10px; font-weight: bold; border: 1px solid transparent; }
-        .raw-text { font-size: 11px; color: #aaa; height: 80px; font-family: monospace; }
+        #status { padding: 15px; border-radius: 6px; display: none; margin-top: 10px; font-weight: bold; }
+        .raw-text { font-size: 10px; color: #999; height: 60px; font-family: monospace; border: 1px dashed #ccc; }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align:center; color:#333;">Lector DNI Validado</h2>
+    <h2 style="text-align:center; color:#333;">Lector DNI por Etiquetas</h2>
 
     <div class="card">
         <label>📸 Escanear Documento</label>
@@ -36,20 +33,20 @@
         
         <div id="camera-container">
             <video id="video" playsinline autoplay></video>
-            <button type="button" onclick="tomarFoto()">Capturar Imagen</button>
+            <button type="button" onclick="tomarFoto()">Capturar</button>
             <button type="button" class="btn-cancel" onclick="cerrarCamara()">Cancelar</button>
         </div>
     </div>
 
     <form id="ventaForm">
         <div class="card">
-            <label>👤 Datos Personales (Filtrados)</label>
-            <input type="text" id="nombre" placeholder="Nombre">
-            <input type="text" id="apellidos" placeholder="Apellidos">
-            <input type="text" id="dni" placeholder="DNI (Validado por Algoritmo)">
+            <label>👤 Datos Detectados</label>
+            <input type="text" id="nombre" placeholder="Buscando tras NOMBRE/NOM...">
+            <input type="text" id="apellidos" placeholder="Buscando tras APELLIDOS/COGNOMS...">
+            <input type="text" id="dni" placeholder="Buscando tras DNI/NUM...">
 
             <details>
-                <summary style="font-size:12px; cursor:pointer; color:#888;">Ver texto crudo (Debug)</summary>
+                <summary style="font-size:12px; cursor:pointer; color:#888;">Ver texto crudo para comprobar</summary>
                 <textarea id="textoOCR" class="raw-text" readonly></textarea>
             </details>
         </div>
@@ -58,7 +55,6 @@
             <label>🚗 Vehículo</label>
             <input type="text" id="matricula" placeholder="Matrícula">
             <input type="text" id="modelo" placeholder="Modelo">
-            
             <button type="button" class="btn-generar" onclick="generarContrato()">📄 GENERAR CONTRATO</button>
         </div>
     </form>
@@ -67,13 +63,13 @@
 
     <script>
         // ==========================================
-        // 👇 PEGA TU URL DEL SCRIPT DE GOOGLE AQUÍ 👇
+        // 👇 TU URL YA ESTÁ PUESTA AQUÍ 👇
         // ==========================================
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbznr0RNGh9hLBz5QHE3PJqC1MhC2967dHO0NLIaAaEBxkqxbYcaqsQnBzvVJUhvg3FL/exec"; 
         
         let streamCamara = null;
 
-        // --- FUNCIONES BÁSICAS ---
+        // --- 1. CÁMARA ---
         async function iniciarCamara() {
             document.getElementById('camera-container').style.display = 'block';
             try {
@@ -82,7 +78,7 @@
                 });
                 document.getElementById('video').srcObject = stream;
                 streamCamara = stream;
-            } catch (err) { alert("Error al abrir cámara: " + err); }
+            } catch (err) { alert("Error cámara: " + err); }
         }
 
         function cerrarCamara() {
@@ -102,23 +98,11 @@
             enviarAGoogle({ accion: "escanear", imagenDNI: imagenBase64 });
         }
 
-        function generarContrato() {
-            const nom = document.getElementById('nombre').value;
-            const ape = document.getElementById('apellidos').value;
-            const datos = {
-                accion: "generar",
-                nombre: (nom + " " + ape).trim(),
-                dni: document.getElementById('dni').value,
-                matricula: document.getElementById('matricula').value,
-                modelo: document.getElementById('modelo').value
-            };
-            enviarAGoogle(datos);
-        }
-
+        // --- 2. COMUNICACIÓN ---
         function enviarAGoogle(datos) {
             const statusDiv = document.getElementById('status');
             statusDiv.style.display = 'block';
-            statusDiv.innerText = "⏳ Procesando... Buscando DNI válido...";
+            statusDiv.innerText = "⏳ Buscando etiquetas 'NOMBRE', 'DNI'...";
             statusDiv.style.background = "#fff3cd"; statusDiv.style.color = "#856404";
 
             fetch(URL_SCRIPT, {
@@ -131,13 +115,13 @@
                 if (datos.accion === "escanear") {
                     document.getElementById('textoOCR').value = data.textoDetectado;
                     
-                    // EJECUTAR EL CEREBRO MATEMÁTICO
-                    analizarTextoInteligente(data.textoDetectado);
+                    // EJECUTAR LÓGICA DE ETIQUETAS
+                    analizarPorEtiquetas(data.textoDetectado);
                     
-                    statusDiv.innerText = "✅ Datos filtrados y validados.";
+                    statusDiv.innerText = "✅ Datos extraídos. Verifica si son correctos.";
                     statusDiv.style.background = "#d4edda"; statusDiv.style.color = "#155724";
                 } else if (datos.accion === "generar") {
-                    statusDiv.innerHTML = '🎉 <a href="' + data.url + '" target="_blank">VER PDF GENERADO</a>';
+                    statusDiv.innerHTML = '🎉 <a href="' + data.url + '" target="_blank">ABRIR PDF</a>';
                     statusDiv.style.background = "#d4edda";
                 }
             })
@@ -147,87 +131,94 @@
             });
         }
 
+        function generarContrato() {
+            const datos = {
+                accion: "generar",
+                nombre: (document.getElementById('nombre').value + " " + document.getElementById('apellidos').value).trim(),
+                dni: document.getElementById('dni').value,
+                matricula: document.getElementById('matricula').value,
+                modelo: document.getElementById('modelo').value
+            };
+            enviarAGoogle(datos);
+        }
+
         // ==========================================
-        // 🧠 CEREBRO V3: MATEMÁTICAS + FILTRO MAYÚSCULAS
+        // 🧠 CEREBRO: BUSCAR "DETRÁS DE..."
         // ==========================================
-        function analizarTextoInteligente(textoRaw) {
+        function analizarPorEtiquetas(textoRaw) {
+            // Dividir por líneas y quitar espacios vacíos
+            const lineas = textoRaw.split('\n').map(l => l.trim().toUpperCase());
             
-            // 1. BUSCAR EL DNI CORRECTO (Usando Matemáticas)
-            // ==============================================
-            // Paso A: Limpiar errores comunes de OCR (O->0, I->1, etc)
-            let textoLimpioNumeros = textoRaw.toUpperCase()
-                .replace(/O/g, '0').replace(/Q/g, '0')
-                .replace(/I/g, '1').replace(/L/g, '1')
-                .replace(/S/g, '5').replace(/B/g, '8')
-                .replace(/Z/g, '2');
+            // Variables temporales
+            let nombre = "";
+            let apellidos = "";
+            let dni = "";
 
-            // Paso B: Buscar TODAS las secuencias de 8 numeros + letra
-            // Regex busca: 8 digitos, un separador opcional (- o espacio) y una letra
-            const regexCandidatos = /(\d{8})([-\s]?)([A-Z])/g;
-            let coincidencias = [...textoLimpioNumeros.matchAll(regexCandidatos)];
-            
-            let dniValido = "";
+            // Función limpieza (quita símbolos raros que el OCR pone a veces)
+            const limpiar = (txt) => {
+                return txt.replace(":", "").replace(".", "").replace("_", "").trim();
+            }
 
-            // Paso C: Probar cada candidato con la fórmula del Ministerio
-            const letrasDNI = "TRWAGMYFPDXBNJZSQVHLCKE";
+            for (let i = 0; i < lineas.length; i++) {
+                let linea = lineas[i];
 
-            for (const match of coincidencias) {
-                let numero = parseInt(match[1], 10); // Los 8 digitos
-                let letraLeida = match[3];           // La letra que leyó la camara
-                
-                // La fórmula mágica: El resto de dividir entre 23 nos da la posición de la letra correcta
-                let letraCorrecta = letrasDNI.charAt(numero % 23);
+                // 1. APELLIDOS (Busca 'APELLIDOS' o 'COGNOMS')
+                if (linea.includes("APELLIDOS") || linea.includes("COGNOMS")) {
+                    // Borramos la etiqueta para ver si queda algo en esa misma línea
+                    let restoLinea = linea.replace("APELLIDOS", "").replace("COGNOMS", "").replace("/", "").trim();
+                    
+                    if (restoLinea.length > 2) {
+                        apellidos = restoLinea; // Estaba en la misma línea
+                    } else if (i + 1 < lineas.length) {
+                        apellidos = lineas[i + 1]; // Estaba en la línea siguiente
+                    }
+                }
 
-                if (letraCorrecta === letraLeida) {
-                    // ¡BINGO! Coinciden matemáticamente. Este es el DNI real.
-                    dniValido = match[1] + letraLeida;
-                    break; // Dejamos de buscar, ya tenemos al bueno
+                // 2. NOMBRE (Busca 'NOMBRE' o 'NOM')
+                // El !linea.includes("PADRES") es para evitar leer los nombres de los padres en DNIs antiguos
+                if ((linea.includes("NOMBRE") || linea.includes("NOM")) && !linea.includes("PADRES")) {
+                    let restoLinea = linea.replace("NOMBRE", "").replace("NOM", "").replace("/", "").trim();
+                    
+                    if (restoLinea.length > 2) {
+                        nombre = restoLinea; 
+                    } else if (i + 1 < lineas.length) {
+                        nombre = lineas[i + 1]; 
+                    }
+                }
+
+                // 3. DNI (Busca 'DNI' o 'NUM')
+                if (linea.includes("DNI") || linea.includes("NUM")) {
+                    // Primero miramos en esta misma línea buscando patrón 8 números
+                    let match = linea.match(/(\d{8})([-\s]?)([A-Z])/);
+                    
+                    if (match) {
+                        dni = match[1] + match[3];
+                    } else if (i + 1 < lineas.length) {
+                        // Si no, miramos en la siguiente línea
+                        let matchSig = lineas[i + 1].match(/(\d{8})([-\s]?)([A-Z])/);
+                        if (matchSig) {
+                            dni = matchSig[1] + matchSig[3];
+                        }
+                    }
                 }
             }
-            
-            if (dniValido) {
-                document.getElementById('dni').value = dniValido;
-            }
 
-            // 2. BUSCAR NOMBRE Y APELLIDOS (Filtro Anti-Minúsculas)
-            // ==============================================
-            const lineas = textoRaw.split('\n');
-            let posiblesNombres = [];
-
-            // Palabras prohibidas (si la linea tiene esto, es basura)
-            const prohibidas = ["NOM", "COGNOM", "NAIXEMENT", "ESP", "ID", "VALIDEZ", "FECHA", "EQUIPO", "EXPEDICION"];
-
-            for (let linea of lineas) {
-                linea = linea.trim();
-                if (linea.length < 3) continue; // Lineas muy cortas fuera
-
-                // Regla 1: Si tiene minúsculas, FUERA (etiquetas como /nom)
-                // /[a-z]/ busca cualquier letra minúscula
-                if (/[a-z]/.test(linea)) continue;
-
-                // Regla 2: Si tiene números, FUERA (fechas, DNI repetido)
-                if (/[0-9]/.test(linea)) continue;
-
-                // Regla 3: Si tiene palabras prohibidas, FUERA
-                let esProhibida = false;
-                for (let palabra of prohibidas) {
-                    if (linea.includes(palabra)) esProhibida = true;
+            // --- RED DE SEGURIDAD PARA EL DNI ---
+            // Si después de buscar la etiqueta "DNI" no hemos encontrado nada (porque el OCR no leyó la palabra "DNI")
+            // buscamos cualquier patrón de 8 números + letra en todo el texto.
+            if (!dni) {
+                // Corrección de O por 0 para la búsqueda general
+                let textoLimpio = textoRaw.toUpperCase().replace(/O/g, '0');
+                let matchGeneral = textoLimpio.match(/(\d{8})([-\s]?)([A-Z])/);
+                if (matchGeneral) {
+                    dni = matchGeneral[1] + matchGeneral[3];
                 }
-                if (esProhibida) continue;
-
-                // Si sobrevive a todo esto, es un nombre candidato
-                posiblesNombres.push(linea);
             }
 
-            // Normalmente en el DNI:
-            // 1º linea limpia = APELLIDOS
-            // 2º linea limpia = NOMBRE
-            if (posiblesNombres.length > 0) {
-                document.getElementById('apellidos').value = posiblesNombres[0]; // El primero suele ser apellido
-            }
-            if (posiblesNombres.length > 1) {
-                document.getElementById('nombre').value = posiblesNombres[1]; // El segundo suele ser nombre
-            }
+            // Asignar valores
+            if(nombre) document.getElementById('nombre').value = limpiar(nombre);
+            if(apellidos) document.getElementById('apellidos').value = limpiar(apellidos);
+            if(dni) document.getElementById('dni').value = dni;
         }
     </script>
 </body>
