@@ -3,37 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión Venta de Coches - Lector IA</title>
+    <title>Scanner DNI - Validación Matemática</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #eaeff2; }
-        h2 { text-align: center; color: #2c3e50; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; font-size: 0.9em; }
-        input, button, textarea { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 16px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.9em; }
+        input, button, textarea { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
         
         /* Botones */
-        button { background-color: #3498db; color: white; border: none; cursor: pointer; font-weight: 600; transition: 0.3s; }
-        button:hover { background-color: #2980b9; }
-        .btn-cancel { background-color: #e74c3c; }
-        .btn-generar { background-color: #27ae60; font-size: 1.1em; padding: 15px; margin-top: 10px; }
-        
-        /* Cámara */
-        #camera-container { display: none; background: #000; padding: 10px; border-radius: 8px; text-align: center; }
-        video { width: 100%; border-radius: 4px; }
+        button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #0056b3; }
+        .btn-cancel { background-color: #dc3545; }
+        .btn-generar { background-color: #28a745; margin-top: 10px; padding: 15px; font-size: 18px; }
 
-        /* Status */
-        #status { padding: 15px; border-radius: 6px; display: none; margin-top: 10px; font-weight: bold; }
-        .debug-box { font-family: monospace; font-size: 12px; color: #7f8c8d; background: #ecf0f1; border: none; }
+        /* Cámara */
+        #camera-container { display: none; background: black; padding: 10px; border-radius: 8px; text-align: center; }
+        video { width: 100%; max-height: 400px; border-radius: 4px; }
+        
+        /* Debug */
+        #status { padding: 15px; border-radius: 6px; display: none; margin-top: 10px; font-weight: bold; border: 1px solid transparent; }
+        .raw-text { font-size: 11px; color: #aaa; height: 80px; font-family: monospace; }
     </style>
 </head>
 <body>
 
-    <h2>🚗 Trámite Automático</h2>
+    <h2 style="text-align:center; color:#333;">Lector DNI Validado</h2>
 
     <div class="card">
-        <label>Escanear Documento</label>
-        <button type="button" onclick="iniciarCamara()">📸 Abrir Cámara (DNI)</button>
+        <label>📸 Escanear Documento</label>
+        <button type="button" onclick="iniciarCamara()">Abrir Cámara</button>
         
         <div id="camera-container">
             <video id="video" playsinline autoplay></video>
@@ -44,27 +43,21 @@
 
     <form id="ventaForm">
         <div class="card">
-            <label>Datos Extraídos (Autocompletado)</label>
-            
-            <label>Nombre</label>
-            <input type="text" id="nombre" placeholder="Nombre detectado...">
-            
-            <label>Apellidos</label>
-            <input type="text" id="apellidos" placeholder="Apellidos detectados...">
-
-            <label>DNI / NIE</label>
-            <input type="text" id="dni" placeholder="Ej: 12345678X">
+            <label>👤 Datos Personales (Filtrados)</label>
+            <input type="text" id="nombre" placeholder="Nombre">
+            <input type="text" id="apellidos" placeholder="Apellidos">
+            <input type="text" id="dni" placeholder="DNI (Validado por Algoritmo)">
 
             <details>
-                <summary style="cursor:pointer; color:#7f8c8d; margin-bottom:10px;">Ver texto crudo del escáner</summary>
-                <textarea id="textoOCR" rows="4" class="debug-box" readonly></textarea>
+                <summary style="font-size:12px; cursor:pointer; color:#888;">Ver texto crudo (Debug)</summary>
+                <textarea id="textoOCR" class="raw-text" readonly></textarea>
             </details>
         </div>
 
         <div class="card">
-            <label>Datos del Vehículo</label>
-            <input type="text" id="matricula" placeholder="Matrícula (Ej: 0000 BBB)">
-            <input type="text" id="modelo" placeholder="Modelo (Ej: Seat Ibiza)">
+            <label>🚗 Vehículo</label>
+            <input type="text" id="matricula" placeholder="Matrícula">
+            <input type="text" id="modelo" placeholder="Modelo">
             
             <button type="button" class="btn-generar" onclick="generarContrato()">📄 GENERAR CONTRATO</button>
         </div>
@@ -74,96 +67,47 @@
 
     <script>
         // ==========================================
-        // 👇 PEGA TU URL DE GOOGLE APPS SCRIPT AQUÍ 👇
+        // 👇 PEGA TU URL DEL SCRIPT DE GOOGLE AQUÍ 👇
         // ==========================================
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbznr0RNGh9hLBz5QHE3PJqC1MhC2967dHO0NLIaAaEBxkqxbYcaqsQnBzvVJUhvg3FL/exec"; 
         
         let streamCamara = null;
 
-        // --- 1. CONTROL DE CÁMARA ---
+        // --- FUNCIONES BÁSICAS ---
         async function iniciarCamara() {
             document.getElementById('camera-container').style.display = 'block';
             try {
-                // Intenta usar la cámara trasera con 'environment'
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: "environment" } 
                 });
                 document.getElementById('video').srcObject = stream;
                 streamCamara = stream;
-            } catch (err) {
-                alert("Error cámara: " + err);
-            }
+            } catch (err) { alert("Error al abrir cámara: " + err); }
         }
 
         function cerrarCamara() {
-            if (streamCamara) {
-                streamCamara.getTracks().forEach(track => track.stop());
-            }
+            if (streamCamara) streamCamara.getTracks().forEach(track => track.stop());
             document.getElementById('camera-container').style.display = 'none';
         }
 
         function tomarFoto() {
             const video = document.getElementById('video');
             if (!video.srcObject) return;
-
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            
-            const imagenBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1]; 
+            const imagenBase64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1]; 
             cerrarCamara();
-            
             enviarAGoogle({ accion: "escanear", imagenDNI: imagenBase64 });
         }
 
-        // --- 2. COMUNICACIÓN Y PROCESAMIENTO ---
-        function enviarAGoogle(datos) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.style.display = 'block';
-            statusDiv.innerText = "⏳ Analizando imagen... (Inteligencia Artificial)";
-            statusDiv.style.backgroundColor = "#f1c40f"; // Amarillo
-            statusDiv.style.color = "#000";
-
-            fetch(URL_SCRIPT, {
-                method: "POST",
-                body: JSON.stringify(datos)
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.estado === "error") {
-                    throw new Error(data.mensaje);
-                }
-
-                if (datos.accion === "escanear") {
-                    // Mostrar texto crudo por si acaso
-                    document.getElementById('textoOCR').value = data.textoDetectado;
-                    
-                    // EJECUTAR LA LIMPIEZA INTELIGENTE
-                    procesarTextoDNI(data.textoDetectado);
-                    
-                    statusDiv.innerText = "✅ Datos extraídos. Revisa si son correctos.";
-                    statusDiv.style.backgroundColor = "#2ecc71"; // Verde
-                    statusDiv.style.color = "white";
-                } else if (datos.accion === "generar") {
-                    statusDiv.innerHTML = '🎉 <a href="' + data.url + '" target="_blank" style="color:white; text-decoration:underline;">ABRIR PDF GENERADO</a>';
-                    statusDiv.style.backgroundColor = "#27ae60";
-                }
-            })
-            .catch(e => {
-                statusDiv.innerText = "❌ Error: " + e.message;
-                statusDiv.style.backgroundColor = "#e74c3c";
-                statusDiv.style.color = "white";
-            });
-        }
-
         function generarContrato() {
-            // Unimos nombre y apellidos para el contrato
-            const nombreCompleto = document.getElementById('nombre').value + " " + document.getElementById('apellidos').value;
-            
+            const nom = document.getElementById('nombre').value;
+            const ape = document.getElementById('apellidos').value;
             const datos = {
                 accion: "generar",
-                nombre: nombreCompleto.trim(),
+                nombre: (nom + " " + ape).trim(),
                 dni: document.getElementById('dni').value,
                 matricula: document.getElementById('matricula').value,
                 modelo: document.getElementById('modelo').value
@@ -171,74 +115,120 @@
             enviarAGoogle(datos);
         }
 
-        // --- 3. EL CEREBRO DE LA LIMPIEZA (PARSEO) ---
-        function procesarTextoDNI(texto) {
-            // 1. Convertir todo a mayúsculas y limpiar espacios raros
-            let t = texto.toUpperCase().replace(/\r\n/g, "\n");
-            
-            // --- ESTRATEGIA PARA EL DNI (Corrige 0 por O, etc) ---
-            // Buscamos algo que parezca un DNI aunque tenga letras mal puestas
-            // Patrón aproximado: 8 caracteres (numeros o letras parecidas) + 1 letra
-            const regexDNI = /([0-9OQIZS]{8})\s*([A-Z])/;
-            const matchDNI = t.match(regexDNI);
-            
-            if (matchDNI) {
-                let numeros = matchDNI[1];
-                let letra = matchDNI[2];
-                
-                // Corregir errores típicos de OCR en números
-                numeros = numeros.replace(/O/g, '0').replace(/Q/g, '0')
-                                 .replace(/I/g, '1').replace(/Z/g, '2')
-                                 .replace(/S/g, '5').replace(/B/g, '8');
-                
-                document.getElementById('dni').value = numeros + letra;
-            }
+        function enviarAGoogle(datos) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerText = "⏳ Procesando... Buscando DNI válido...";
+            statusDiv.style.background = "#fff3cd"; statusDiv.style.color = "#856404";
 
-            // --- ESTRATEGIA PARA NOMBRES Y APELLIDOS ---
-            // El DNI 3.0 suele tener etiquetas: "APELLIDOS" y "NOMBRE"
-            
-            // Intentar buscar por etiquetas
-            let apellidos = "";
-            let nombre = "";
+            fetch(URL_SCRIPT, {
+                method: "POST", body: JSON.stringify(datos)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.estado === "error") throw new Error(data.mensaje);
 
-            // Buscar linea que contenga "APELLIDOS"
-            const partes = t.split('\n'); // Separar por líneas
-            
-            for (let i = 0; i < partes.length; i++) {
-                let linea = partes[i];
-                
-                // Si encontramos la palabra APELLIDOS, lo siguiente suelen ser los apellidos
-                if (linea.includes("APELLIDOS")) {
-                    // A veces están en la misma línea: "APELLIDOS GARCIA PEREZ"
-                    let temp = linea.replace("APELLIDOS", "").replace("PRIMER", "").trim();
-                    if (temp.length > 2) {
-                        apellidos = temp;
-                    } else if (partes[i+1]) {
-                        // O en la línea siguiente
-                        apellidos = partes[i+1];
-                    }
+                if (datos.accion === "escanear") {
+                    document.getElementById('textoOCR').value = data.textoDetectado;
+                    
+                    // EJECUTAR EL CEREBRO MATEMÁTICO
+                    analizarTextoInteligente(data.textoDetectado);
+                    
+                    statusDiv.innerText = "✅ Datos filtrados y validados.";
+                    statusDiv.style.background = "#d4edda"; statusDiv.style.color = "#155724";
+                } else if (datos.accion === "generar") {
+                    statusDiv.innerHTML = '🎉 <a href="' + data.url + '" target="_blank">VER PDF GENERADO</a>';
+                    statusDiv.style.background = "#d4edda";
                 }
-                
-                // Si encontramos la palabra NOMBRE
-                if (linea.includes("NOMBRE") && !linea.includes("PADRES")) {
-                    let temp = linea.replace("NOMBRE", "").trim();
-                    if (temp.length > 2) {
-                        nombre = temp;
-                    } else if (partes[i+1]) {
-                        nombre = partes[i+1];
-                    }
-                }
-            }
-
-            // Limpieza final de basura (palabras prohibidas en nombres)
-            const limpiarBasura = (str) => {
-                return str.replace(/ESPAÑA|IDESP|DOCUMENTO|NACIONALIDAD|SEXO|[0-9]/g, "").trim();
-            };
-
-            if (apellidos) document.getElementById('apellidos').value = limpiarBasura(apellidos);
-            if (nombre) document.getElementById('nombre').value = limpiarBasura(nombre);
+            })
+            .catch(e => {
+                statusDiv.innerText = "❌ Error: " + e.message;
+                statusDiv.style.background = "#f8d7da"; statusDiv.style.color = "#721c24";
+            });
         }
 
+        // ==========================================
+        // 🧠 CEREBRO V3: MATEMÁTICAS + FILTRO MAYÚSCULAS
+        // ==========================================
+        function analizarTextoInteligente(textoRaw) {
+            
+            // 1. BUSCAR EL DNI CORRECTO (Usando Matemáticas)
+            // ==============================================
+            // Paso A: Limpiar errores comunes de OCR (O->0, I->1, etc)
+            let textoLimpioNumeros = textoRaw.toUpperCase()
+                .replace(/O/g, '0').replace(/Q/g, '0')
+                .replace(/I/g, '1').replace(/L/g, '1')
+                .replace(/S/g, '5').replace(/B/g, '8')
+                .replace(/Z/g, '2');
+
+            // Paso B: Buscar TODAS las secuencias de 8 numeros + letra
+            // Regex busca: 8 digitos, un separador opcional (- o espacio) y una letra
+            const regexCandidatos = /(\d{8})([-\s]?)([A-Z])/g;
+            let coincidencias = [...textoLimpioNumeros.matchAll(regexCandidatos)];
+            
+            let dniValido = "";
+
+            // Paso C: Probar cada candidato con la fórmula del Ministerio
+            const letrasDNI = "TRWAGMYFPDXBNJZSQVHLCKE";
+
+            for (const match of coincidencias) {
+                let numero = parseInt(match[1], 10); // Los 8 digitos
+                let letraLeida = match[3];           // La letra que leyó la camara
+                
+                // La fórmula mágica: El resto de dividir entre 23 nos da la posición de la letra correcta
+                let letraCorrecta = letrasDNI.charAt(numero % 23);
+
+                if (letraCorrecta === letraLeida) {
+                    // ¡BINGO! Coinciden matemáticamente. Este es el DNI real.
+                    dniValido = match[1] + letraLeida;
+                    break; // Dejamos de buscar, ya tenemos al bueno
+                }
+            }
+            
+            if (dniValido) {
+                document.getElementById('dni').value = dniValido;
+            }
+
+            // 2. BUSCAR NOMBRE Y APELLIDOS (Filtro Anti-Minúsculas)
+            // ==============================================
+            const lineas = textoRaw.split('\n');
+            let posiblesNombres = [];
+
+            // Palabras prohibidas (si la linea tiene esto, es basura)
+            const prohibidas = ["NOM", "COGNOM", "NAIXEMENT", "ESP", "ID", "VALIDEZ", "FECHA", "EQUIPO", "EXPEDICION"];
+
+            for (let linea of lineas) {
+                linea = linea.trim();
+                if (linea.length < 3) continue; // Lineas muy cortas fuera
+
+                // Regla 1: Si tiene minúsculas, FUERA (etiquetas como /nom)
+                // /[a-z]/ busca cualquier letra minúscula
+                if (/[a-z]/.test(linea)) continue;
+
+                // Regla 2: Si tiene números, FUERA (fechas, DNI repetido)
+                if (/[0-9]/.test(linea)) continue;
+
+                // Regla 3: Si tiene palabras prohibidas, FUERA
+                let esProhibida = false;
+                for (let palabra of prohibidas) {
+                    if (linea.includes(palabra)) esProhibida = true;
+                }
+                if (esProhibida) continue;
+
+                // Si sobrevive a todo esto, es un nombre candidato
+                posiblesNombres.push(linea);
+            }
+
+            // Normalmente en el DNI:
+            // 1º linea limpia = APELLIDOS
+            // 2º linea limpia = NOMBRE
+            if (posiblesNombres.length > 0) {
+                document.getElementById('apellidos').value = posiblesNombres[0]; // El primero suele ser apellido
+            }
+            if (posiblesNombres.length > 1) {
+                document.getElementById('nombre').value = posiblesNombres[1]; // El segundo suele ser nombre
+            }
+        }
     </script>
 </body>
 </html>
