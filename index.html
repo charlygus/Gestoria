@@ -5,73 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión Venta de Coches</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, button, textarea { width: 100%; padding: 10px; box-sizing: border-box; }
-        button { background-color: #2c3e50; color: white; border: none; margin-top: 10px; cursor: pointer; }
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f4f9; }
+        h2 { text-align: center; color: #333; }
+        .input-group { margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input, button, textarea { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        
+        /* Botones */
+        button { background-color: #2c3e50; color: white; border: none; margin-top: 10px; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #34495e; }
-        #camera-container { display: none; margin-bottom: 15px; text-align: center; }
-        video { width: 100%; max-height: 300px; background: #000; }
-        #status { margin-top: 20px; padding: 10px; background: #f0f0f0; display: none; border-left: 5px solid #333; }
+        .btn-cancel { background-color: #c0392b; }
+        .btn-cancel:hover { background-color: #e74c3c; }
+        .btn-generar { background-color: #27ae60; margin-top: 20px; font-size: 18px; }
+        .btn-generar:hover { background-color: #2ecc71; }
+
+        /* Cámara */
+        #camera-container { display: none; margin-top: 10px; text-align: center; background: #000; padding: 10px; border-radius: 8px; }
+        video { width: 100%; max-height: 300px; border-radius: 4px; }
+        
+        /* Estado */
+        #status { margin-top: 20px; padding: 15px; background: #fff; display: none; border-left: 5px solid #333; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <h2>Nuevo Trámite de Venta</h2>
+    <h2>Gestoría - Cambio de Nombre</h2>
 
     <div class="input-group">
-        <label>Datos del Comprador (DNI)</label>
-        <button type="button" onclick="iniciarCamara()">Abrir Cámara para DNI</button>
+        <label>1. Escanear DNI del Comprador</label>
+        <button type="button" onclick="iniciarCamara()">📸 Abrir Cámara</button>
         
         <div id="camera-container">
             <video id="video" playsinline autoplay></video>
-            <button type="button" onclick="tomarFoto()">Capturar y Escanear</button>
-            <button type="button" onclick="cerrarCamara()" style="background-color: #c0392b;">Cancelar</button>
+            <button type="button" onclick="tomarFoto()">Capturar Foto</button>
+            <button type="button" class="btn-cancel" onclick="cerrarCamara()">Cancelar</button>
         </div>
     </div>
 
     <form id="ventaForm">
         <div class="input-group">
-            <label>Texto extraído del DNI (Raw)</label>
-            <textarea id="textoOCR" rows="4" placeholder="Aquí aparecerá el texto leído del DNI..."></textarea>
-            <small>Si falla, escribe los datos manualmente abajo.</small>
+            <label>Texto leído por la cámara (Referencia)</label>
+            <textarea id="textoOCR" rows="3" placeholder="Aquí aparecerá todo lo que lea la cámara..." readonly style="background:#eee;"></textarea>
         </div>
 
         <div class="input-group">
-            <label>Nombre Completo</label>
-            <input type="text" id="nombre" placeholder="Nombre Apellidos">
+            <label>👤 Nombre Completo</label>
+            <input type="text" id="nombre" placeholder="Ej: JUAN GARCIA LOPEZ">
+            <small style="color:#666;">(Copia el nombre del cuadro de arriba si aparece)</small>
         </div>
 
         <div class="input-group">
-            <label>DNI / NIE</label>
-            <input type="text" id="dni" placeholder="12345678X">
+            <label>🪪 DNI / NIE</label>
+            <input type="text" id="dni" placeholder="Se rellenará solo al escanear">
         </div>
 
-        <hr>
-
         <div class="input-group">
-            <label>Matrícula Vehículo</label>
+            <label>🚗 Matrícula Vehículo</label>
             <input type="text" id="matricula" placeholder="0000 BBB">
         </div>
 
         <div class="input-group">
-            <label>Modelo</label>
+            <label>🚙 Modelo</label>
             <input type="text" id="modelo" placeholder="Ej. Ford Focus">
         </div>
 
-        <button type="button" onclick="generarContrato()">GENERAR CONTRATO</button>
+        <button type="button" class="btn-generar" onclick="generarContrato()">📄 GENERAR CONTRATO</button>
     </form>
 
     <div id="status"></div>
 
     <script>
-        // --- PEGA TU URL DE GOOGLE APPS SCRIPT AQUÍ ABAJO ---
+        // ==========================================
+        // ¡¡ PEGA TU URL DE GOOGLE AQUÍ ABAJO !!
+        // ==========================================
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbznr0RNGh9hLBz5QHE3PJqC1MhC2967dHO0NLIaAaEBxkqxbYcaqsQnBzvVJUhvg3FL/exec"; 
-        // -----------------------------------------------------
-
+        
         let streamCamara = null;
 
+        // 1. FUNCIONES DE CÁMARA
         async function iniciarCamara() {
             document.getElementById('camera-container').style.display = 'block';
             try {
@@ -81,7 +92,7 @@
                 document.getElementById('video').srcObject = stream;
                 streamCamara = stream;
             } catch (err) {
-                alert("Error al acceder a la cámara: " + err);
+                alert("No se pudo abrir la cámara. Revisa los permisos.");
             }
         }
 
@@ -94,35 +105,45 @@
 
         function tomarFoto() {
             const video = document.getElementById('video');
-            if (!video.srcObject) return; // Evitar error si no hay cámara
+            if (!video.srcObject) return;
 
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
             
-            const imagenBase64 = canvas.toDataURL('image/jpeg').split(',')[1]; 
+            // Convertir a texto base64 para enviar
+            const imagenBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1]; 
             cerrarCamara();
             
             enviarAGoogle({ accion: "escanear", imagenDNI: imagenBase64 });
         }
 
+        // 2. FUNCIÓN DE GENERAR
         function generarContrato() {
             const datos = {
                 accion: "generar",
-                nombre: document.getElementById('nombre').value,
-                dni: document.getElementById('dni').value,
-                matricula: document.getElementById('matricula').value,
-                modelo: document.getElementById('modelo').value
+                nombre: document.getElementById('nombre').value.toUpperCase(),
+                dni: document.getElementById('dni').value.toUpperCase(),
+                matricula: document.getElementById('matricula').value.toUpperCase(),
+                modelo: document.getElementById('modelo').value.toUpperCase()
             };
+            
+            if(!datos.dni || !datos.matricula) {
+                alert("Por favor, rellena al menos DNI y Matrícula.");
+                return;
+            }
+
             enviarAGoogle(datos);
         }
 
+        // 3. COMUNICACIÓN CON GOOGLE (CEREBRO)
         function enviarAGoogle(datos) {
             const statusDiv = document.getElementById('status');
             statusDiv.style.display = 'block';
-            statusDiv.innerText = "Procesando... por favor espera.";
+            statusDiv.innerText = "⏳ Procesando... espera unos segundos.";
             statusDiv.style.color = "black";
+            statusDiv.style.borderColor = "#333";
 
             fetch(URL_SCRIPT, {
                 method: "POST",
@@ -130,27 +151,48 @@
             })
             .then(r => r.json())
             .then(data => {
-                // --- DETECTOR DE ERRORES ---
+                // A. Si hay error desde Google
                 if (data.estado === "error") {
-                    alert("⚠️ ERROR DE GOOGLE: " + data.mensaje);
-                    statusDiv.innerText = "Fallo: " + data.mensaje;
+                    statusDiv.innerText = "❌ Error: " + data.mensaje;
                     statusDiv.style.color = "red";
+                    statusDiv.style.borderColor = "red";
                     return; 
                 }
                 
-                // --- ÉXITO ---
+                // B. Si es respuesta de ESCANEO
                 if (datos.accion === "escanear") {
-                    document.getElementById('textoOCR').value = data.textoDetectado;
-                    statusDiv.innerText = "Escaneo completado. Verifica los datos.";
-                    statusDiv.style.color = "green";
+                    const textoCrudo = data.textoDetectado;
+                    document.getElementById('textoOCR').value = textoCrudo; // Mostrar todo
+                    
+                    // -- LÓGICA DE DETECCIÓN AUTOMÁTICA DE DNI --
+                    // Busca patrón: 8 números + separador opcional + 1 letra
+                    const regexDNI = /(\d{8})([-\s]?)([A-Z])/i;
+                    const match = textoCrudo.match(regexDNI);
+
+                    if (match) {
+                        const dniLimpio = match[1] + match[3].toUpperCase(); // Junta numeros y letra
+                        document.getElementById('dni').value = dniLimpio;
+                        
+                        statusDiv.innerText = "✅ ¡DNI Detectado: " + dniLimpio + "! (Revisa el Nombre arriba)";
+                        statusDiv.style.color = "#27ae60";
+                        statusDiv.style.borderColor = "#27ae60";
+                    } else {
+                        statusDiv.innerText = "⚠️ Escaneo completado, pero no vi el DNI claro. Búscalo en el texto de arriba.";
+                        statusDiv.style.color = "#e67e22";
+                        statusDiv.style.borderColor = "#e67e22";
+                    }
+
+                // C. Si es respuesta de GENERAR CONTRATO
                 } else if (datos.accion === "generar") {
-                    statusDiv.innerHTML = '✅ Éxito! <a href="' + data.url + '" target="_blank">Abrir Contrato PDF</a>';
+                    statusDiv.innerHTML = '🎉 <b>¡Contrato Listo!</b> <br><br> <a href="' + data.url + '" target="_blank" style="background:green; color:white; padding:10px; text-decoration:none; border-radius:5px;">DESCARGAR PDF AQUÍ</a>';
+                    statusDiv.style.color = "black";
+                    statusDiv.style.borderColor = "green";
                 }
             })
             .catch(e => {
-                statusDiv.innerText = "Error de conexión: " + e;
+                statusDiv.innerText = "❌ Error de conexión: " + e;
                 statusDiv.style.color = "red";
-                alert("Error de conexión (CORS o Red): " + e);
+                alert("Error de conexión. Revisa tu internet o la URL del script.");
             });
         }
     </script>
